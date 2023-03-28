@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "equations")
 public class Equation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

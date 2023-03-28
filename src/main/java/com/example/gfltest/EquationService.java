@@ -3,6 +3,7 @@ package com.example.gfltest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.springframework.stereotype.Service;
 
@@ -12,19 +13,33 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EquationService {
     private final EquationRepository equationRepository;
+    private final RootRepository rootRepository;
 
     @SneakyThrows
     public Equation save(Equation equation, Double root) {
-        boolean isValid;
+        log.info("Saving equation {}", equation.getId());
+        if (root != null) {
+            Root root1 = Root.builder().value(root).build();
+            rootRepository.save(root1);
+            equation.setRoot(root1);
+        }
+        boolean isValid = true;
         if (root == null) {
             isValid = validate(equation.getEquation());
         } else {
             isValid = validate(equation.getEquation(), root);
         }
 
-        return isValid ? equationRepository.save(equation) : null;
+        if (isValid) {
+            log.info("Equation is valid");
+            return equationRepository.save(equation);
+        } else {
+            log.info("Equation is NOT valid");
+            return null;
+        }
     }
 
 
@@ -55,6 +70,7 @@ public class EquationService {
             }
 
             if (count == 2) {
+
                 return false;
             }
 
@@ -64,28 +80,30 @@ public class EquationService {
     }
 
     private static boolean checkBrackets(String input) {
-        Stack<Character> stack = new Stack<>();
-        Map<Character, Character> map = new HashMap<>();
-        map.put('(', ')');
+//        Stack<Character> stack = new Stack<>();
+//        Map<Character, Character> map = new HashMap<>();
+//        map.put('(', ')');
+//
+//
+//        if (input.charAt(0) != '(') return false;
+//
+//
+//        for(int i=0; i < input.length(); i++) {
+//            char c = input.charAt(i);
+//            if(stack.isEmpty() && c != '(') return false;
+//            if(c == '(') {
+//                stack.push(c);
+//            }else if (c == ')'){
+//                if(map.get(stack.peek()) != c) {
+//                    return false;
+//                }else {
+//                    stack.pop();
+//                }
+//            }
+//        }
+//        return stack.isEmpty();
 
-
-        if (input.charAt(0) != '(') return false;
-
-
-        for(int i=0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if(stack.isEmpty() && c != '(') return false;
-            if(c == '(') {
-                stack.push(c);
-            }else if (c == ')'){
-                if(map.get(stack.peek()) != c) {
-                    return false;
-                }else {
-                    stack.pop();
-                }
-            }
-        }
-        return stack.isEmpty();
+        return true;
     }
 
 

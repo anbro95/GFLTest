@@ -1,0 +1,17 @@
+
+spring:
+  application:
+    name: gfl-test
+  datasource:
+    url: jdbc:postgresql://localhost:54320/GFL
+    driver-class-name: org.postgresql.Driver
+    username: user
+    password: admin
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+server:
+  port: 8082
