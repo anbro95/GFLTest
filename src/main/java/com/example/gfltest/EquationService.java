@@ -21,33 +21,36 @@ public class EquationService {
     @SneakyThrows
     public Equation save(Equation equation, Double root) {
         log.info("Saving equation {}", equation.getId());
+        boolean isValid = true;
+
         if (root != null) {
             Root root1 = Root.builder().value(root).build();
-            rootRepository.save(root1);
             equation.setRoot(root1);
-        }
-        boolean isValid = true;
-        if (root == null) {
-            isValid = validate(equation.getEquation());
-        } else {
             isValid = validate(equation.getEquation(), root);
+
+            if (isValid) {
+                rootRepository.save(root1);
+                return equationRepository.save(equation);
+            } else {
+                return null;
+            }
+        } else {
+            isValid = validate(equation.getEquation());
+            if (isValid) {
+                return equationRepository.save(equation);
+            } else {
+                return null;
+            }
         }
 
-        if (isValid) {
-            log.info("Equation is valid");
-            return equationRepository.save(equation);
-        } else {
-            log.info("Equation is NOT valid");
-            return null;
-        }
     }
 
 
-    public static boolean validate(String equation) {
+    private static boolean validate(String equation) {
         return checkSigns(equation) && checkBrackets(equation);
     }
 
-    public static boolean validate(String equation, double root) throws ScriptException {
+    private static boolean validate(String equation, double root) throws ScriptException {
         return checkSigns(equation) && checkBrackets(equation) && checkRoot(equation, root);
     }
 
@@ -80,30 +83,25 @@ public class EquationService {
     }
 
     private static boolean checkBrackets(String input) {
-//        Stack<Character> stack = new Stack<>();
-//        Map<Character, Character> map = new HashMap<>();
-//        map.put('(', ')');
-//
-//
-//        if (input.charAt(0) != '(') return false;
-//
-//
-//        for(int i=0; i < input.length(); i++) {
-//            char c = input.charAt(i);
-//            if(stack.isEmpty() && c != '(') return false;
-//            if(c == '(') {
-//                stack.push(c);
-//            }else if (c == ')'){
-//                if(map.get(stack.peek()) != c) {
-//                    return false;
-//                }else {
-//                    stack.pop();
-//                }
-//            }
-//        }
-//        return stack.isEmpty();
+        Stack<Character> stack = new Stack<>();
 
-        return true;
+        try {
+            for (int i = 0; i < input.length(); i++) {
+                char c = input.charAt(i);
+                if (c == '(') {
+                    stack.push(c);
+                } else if (c == ')') {
+                    if (stack.peek() != '(') {
+                        return false;
+                    } else {
+                        stack.pop();
+                    }
+                }
+            }
+        } catch (EmptyStackException e) {
+            return false;
+        }
+        return stack.isEmpty();
     }
 
 
