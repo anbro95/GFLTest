@@ -2,6 +2,7 @@ package com.example.gfltest;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.springframework.stereotype.Service;
 
@@ -14,22 +15,25 @@ import java.util.*;
 public class EquationService {
     private final EquationRepository equationRepository;
 
-    public Equation add(Equation equation, Double root) {
-        return null;
+    @SneakyThrows
+    public Equation save(Equation equation, Double root) {
+        boolean isValid;
+        if (root == null) {
+            isValid = validate(equation.getEquation());
+        } else {
+            isValid = validate(equation.getEquation(), root);
+        }
+
+        return isValid ? equationRepository.save(equation) : null;
     }
 
 
-    // todo
-    public static void validate(String equation) {
-        if (checkBrackets(equation)) {
-            // do smth
-        }
+    public static boolean validate(String equation) {
+        return checkSigns(equation) && checkBrackets(equation);
     }
-    // todo
-    public static void validate(String equation, double root) throws ScriptException {
-        if (checkBrackets(equation) && checkRoot(equation, root)) {
-            // do smth
-        }
+
+    public static boolean validate(String equation, double root) throws ScriptException {
+        return checkSigns(equation) && checkBrackets(equation) && checkRoot(equation, root);
     }
 
     private static boolean checkSigns(String input) {
