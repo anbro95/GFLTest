@@ -14,7 +14,7 @@ public class EquationController {
     private final EquationRepository equationRepository;
 
     @PostMapping("")
-    public ResponseEntity<Object> save(@RequestBody Equation equation,  @RequestParam(required = false) Double root) {
+    public ResponseEntity<Equation> save(@RequestBody Equation equation,  @RequestParam(required = false) Double root) {
         return ResponseEntity.ok().body(equationService.save(equation, root));
     }
 //  todo
