@@ -1,6 +1,7 @@
 package com.example.gfltest;
 
 
+import jakarta.xml.bind.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,50 +17,45 @@ import java.util.*;
 @Slf4j
 public class EquationService {
     private final EquationRepository equationRepository;
-    private final RootRepository rootRepository;
 
     @SneakyThrows
-    public Equation save(Equation equation, Double root) {
+    public Equation save(final Equation equation, final Double root) {
         log.info("Saving equation {}", equation.getId());
-        boolean isValid = true;
+        equation.setRoot(root);
+        validate(equation);
+        return equationRepository.save(equation);
+    }
 
-        if (root != null) {
-            Root root1 = Root.builder().value(root).build();
-            equation.setRoot(root1);
-            isValid = validate(equation.getEquation(), root);
-
-            if (isValid) {
-                rootRepository.save(root1);
-                return equationRepository.save(equation);
-            } else {
-                return null;
-            }
+    private static void validate(Equation equation) {
+        if (equation.getRoot() == null) {
+            validateWithoutRoot(equation.getEquation());
         } else {
-            isValid = validate(equation.getEquation());
-            if (isValid) {
-                return equationRepository.save(equation);
-            } else {
-                return null;
-            }
+            validateWithRoot(equation.getEquation(), equation.getRoot());
         }
-
     }
 
-
-    private static boolean validate(String equation) {
-        return checkSigns(equation) && checkBrackets(equation);
+    @SneakyThrows
+    private static void validateWithoutRoot(final String equation) {
+        boolean isValid =  checkSigns(equation) && checkBrackets(equation);
+        if (!isValid) {
+            throw new ValidationException("Validation failed");
+        }
     }
 
-    private static boolean validate(String equation, double root) throws ScriptException {
-        return checkSigns(equation) && checkBrackets(equation) && checkRoot(equation, root);
+    @SneakyThrows
+    private static void validateWithRoot(final String equation, final double root) {
+        boolean isValid =  checkSigns(equation) && checkBrackets(equation) && checkRoot(equation, root);
+        if (!isValid) {
+            throw new ValidationException("Validation failed");
+        }
     }
 
-    private static boolean checkSigns(String input) {
-        char[] arr = input.toCharArray();
+    private static boolean checkSigns(final String input) {
+        final char[] arr = input.toCharArray();
         int count = 0;
-        Set<Character> signs = new HashSet<>(Arrays.asList('+', '-', '*', '/'));
+        final Set<Character> signs = new HashSet<>(Arrays.asList('+', '-', '*', '/'));
 
-        Set<Character> numbers = new HashSet<>(Arrays.asList('1','2','3','4','5','6','7','8','9'));
+        final Set<Character> numbers = new HashSet<>(Arrays.asList('0', '1','2','3','4','5','6','7','8','9'));
 
         for (int i = 0; i < arr.length; i++) {
             if (signs.contains(arr[i])) {
@@ -73,17 +69,14 @@ public class EquationService {
             }
 
             if (count == 2) {
-
                 return false;
             }
-
         }
-
         return true;
     }
 
     private static boolean checkBrackets(String input) {
-        Stack<Character> stack = new Stack<>();
+        final Stack<Character> stack = new Stack<>();
 
         try {
             for (int i = 0; i < input.length(); i++) {
@@ -105,11 +98,11 @@ public class EquationService {
     }
 
 
-    private static boolean checkRoot(String equation, double root) throws ScriptException {
+    private static boolean checkRoot(final String equation, final double root) throws ScriptException {
         String left = equation.split("=")[0];
         String right = equation.split("=")[1];
 
-        ScriptEngine nashornEngine = new NashornScriptEngineFactory().getScriptEngine();
+        final ScriptEngine nashornEngine = new NashornScriptEngineFactory().getScriptEngine();
         left = left.replace("x", String.valueOf(root));
         right = right.replace("x", String.valueOf(root));
 

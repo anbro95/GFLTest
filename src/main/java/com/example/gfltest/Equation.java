@@ -1,10 +1,9 @@
 package com.example.gfltest;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.Generated;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -12,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "equations")
+@Builder
 public class Equation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,8 +19,6 @@ public class Equation {
 
     private String equation;
 
-
-    @ManyToOne
-    private Root root;
+    private Double root;
 
 }
